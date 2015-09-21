@@ -7,10 +7,12 @@ require 'optparse'
 require 'rubygems'
 require 'syslog/logger'
 require 'trollop'
-require_relative 'check_helper'
+require_relative 'helpers/check_helper'
+require_relative 'helpers/notification_helper'
 
 Bundler.require
 available_checks = import_checks()
+avaliable_notifications = import_notifications()
 
 log = Syslog::Logger.new 'run_check'
 
@@ -26,6 +28,8 @@ where [options] are:
 
   opt :check_name, "The name of the check you wish to run",
       :type => String
+  opt :notification_name, "The name of the notification type you wish to send",
+      :type => String
   opt :delimiter, "Delimiter to use when splitting params", :default => '|'
   opt :verbose, "Use verbose output", :default => false
 end
@@ -33,7 +37,7 @@ end
 Trollop::die :check_name, "must be a supplied" if (opts[:check_name] == nil)
 
 #Parameter validation. Ensure the check requested is available.
-check_clazz = NIL
+check_clazz = nil
 available_checks.each do | _check |
   if _check.respond_to?(:name)
     if _check.name. == opts[:check_name]
@@ -42,8 +46,25 @@ available_checks.each do | _check |
     end
   end
 end
+
+#And the requested notification
+notif_clazz = nil
+avaliable_notifications.each do | _notif |
+  if _notif.respond_to?(:name)
+    if _notif.name. == opts[:notification_name]
+      notif_clazz = _notif
+      break
+    end
+  end
+end
+
 if check_clazz.nil?
   puts "Unable to find any check by name: #{opts[:check_name]}. Available checks: #{available_checks.inspect}"
+  exit(1)
+end
+
+if notif_clazz.nil? and not opts[:notification_name].nil?
+  puts "Unable to find any notification type by name: #{opts[:notification_name]}. Available checks: #{avaliable_notifications.inspect}"
   exit(1)
 end
 
@@ -61,25 +82,35 @@ check = check_clazz.new()
 begin
   check.execute(check_params)
 rescue ArgumentError => arg_error
-  puts "ERROR: #{arg_error.message}"
+  puts "\nCHECK ERROR: #{arg_error.message}"
   puts check.help
   exit(2)
 end
 
 if check.failed?
   log.error("CHECK FAILED: #{check.output}")
-  Pony.mail(:to => 'ben.bettridge@example.com', :from => 'alerts@example.com', :subject => "CHECK FAILURE: #{check.class.name}", :body => check.output)
   puts "FAILED"
   if opts[:verbose]
     puts "#{check.output}"
   end
-  exit(1)
+  exit_code = 1
 else
   log.info("CHECK SUCCEEDED: #{check.class.name} - #{check.output}")
   puts "SUCCESS"
   if opts[:verbose]
     puts "#{check.output}"
   end
-  exit()
+  exit_code = 0
 end
 
+if not notif_clazz.nil?
+  notif = notif_clazz.new()
+  begin
+    notif.send(check_params, check)
+  rescue ArgumentError => arg_error
+    puts "\nNOTIFICATION ERROR: #{arg_error.message}"
+    puts notif.help
+  end
+end
+
+exit(exit_code)
