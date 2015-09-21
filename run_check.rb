@@ -68,6 +68,7 @@ end
 
 if check.failed?
   log.error("CHECK FAILED: #{check.output}")
+  Pony.mail(:to => 'ben.bettridge@example.com', :from => 'alerts@example.com', :subject => "CHECK FAILURE: #{check.class.name}", :body => check.output)
   puts "FAILED"
   if opts[:verbose]
     puts "#{check.output}"
@@ -81,3 +82,4 @@ else
   end
   exit()
 end
+
