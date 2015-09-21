@@ -6,7 +6,7 @@ class DiskCheck < BaseCheck
 
     normalized_threshold = normalize_threshold(params['threshold'])
     stat = Sys::Filesystem.stat(params['path'])
-    percentage_free = (stat.blocks_available / stat.blocks) * 100
+    percentage_free = ((stat.blocks_available * 1.0) / (stat.blocks * 1.0)) * 100
 
     if percentage_free < normalized_threshold
       @failed = false
@@ -16,7 +16,7 @@ class DiskCheck < BaseCheck
 
     mb_total = stat.block_size * stat.blocks / 1024 /1024
     mb_available = stat.block_size * stat.blocks_available / 1024 / 1024
-    @output = "Total MB:\t#{mb_total}\t\tAvail MB:\t#{mb_available}\t\tUsage:\t#{percentage_free}"
+    @output = "Total MB:\t#{mb_total}\t\tAvail MB:\t#{mb_available}\t\tUsage:\t#{percentage_free.round(2)}%"
   end
 
   def help
@@ -43,6 +43,10 @@ class DiskCheck < BaseCheck
 
   def failed?
     @failed
+  end
+
+  def output
+    @output
   end
 
   protected
