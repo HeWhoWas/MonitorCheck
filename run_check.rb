@@ -55,7 +55,14 @@ end
 
 #Create an instance and run the checks.
 check = check_clazz.new()
-check.execute(check_params)
+begin
+  check.execute(check_params)
+rescue ArgumentError => arg_error
+  puts "ERROR: #{arg_error.message}"
+  puts check.help
+  exit(2)
+end
+
 if check.failed?
   puts "FAILED"
   if opts[:verbose]
