@@ -5,12 +5,15 @@ $stderr.sync = true
 require 'bundler/setup'
 require 'optparse'
 require 'rubygems'
+require 'syslog/logger'
+require 'trollop'
 require_relative 'check_helper'
 
 Bundler.require
 available_checks = import_checks()
 
-require 'trollop'
+log = Syslog::Logger.new 'run_check'
+
 opts = Trollop::options do
   version "Check 0.0.1 2015 Ben Bettridge"
   banner <<-EOS
@@ -64,12 +67,14 @@ rescue ArgumentError => arg_error
 end
 
 if check.failed?
+  log.error("CHECK FAILED: #{check.output}")
   puts "FAILED"
   if opts[:verbose]
     puts "#{check.output}"
   end
   exit(1)
 else
+  log.info("CHECK SUCCEEDED: #{check.class.name} - #{check.output}")
   puts "SUCCESS"
   if opts[:verbose]
     puts "#{check.output}"
