@@ -1,18 +1,11 @@
-require_relative('base_check')
-require('benchmark')
-class HttpCheck < BaseCheck
+require_relative('elasticsearch_check')
+class ElasticsearchResponseCodeCheck < ElasticsearchCheck
 
-  @@required_params = {"url" => "The URL to test.",
-                       "response" => "The response code to expect returned.",
-                       "timeout" => "The timeout value in milliseconds to trigger an alert."}
+  @@required_params = @@required_params.merge!({'test' => 'Elasticsearch URL to connect to'})
 
   def execute(params={})
     validate_params(params)
-    client = HTTPClient.new
-    response = nil
-    response_time = Benchmark.measure do
-      response = client.get(params['url'])
-    end
+
     if response_time.real > ((params['timeout'].to_i * 1.0) / 1000)
       @failed = true
       @output = "Exceeded timeout value of #{params['timeout']} milliseconds. Time taken: #{(response_time.real * 1000).round(2)} milliseconds"

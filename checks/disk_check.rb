@@ -1,6 +1,9 @@
 require_relative('base_check')
 class DiskCheck < BaseCheck
-  
+
+  @@required_params = {"threshold" => "Free space to alert on if value drops BELOW.",
+                       "path" => "Directory path to check available space"}
+
   def execute(params={})
     validate_params(params)
 
@@ -20,36 +23,18 @@ class DiskCheck < BaseCheck
   end
 
   def help
-    'DiskCheck requires the following params:
-      path = <FILE PATH>
-      threshold = <PERCENTAGE>
-
-    Example:
-      DiskCheck path|/ threshold|90%
-
-    Note: threshold is limited to an integer'
-  end
-
-  def validate_params(params)
-    if params['path'].nil?
-      raise ArgumentError.new("No 'path' parameter provided")
-    end
-    if params['threshold'].nil?
-      raise ArgumentError.new("No 'threshold' parameter provided")
-    elsif normalize_threshold(params['threshold']).nil?
-      raise ArgumentError.new("'threshold' param needs to be an integer with or without '%'. E.g: 50% or 50")
-    end
-  end
-
-  def failed?
-    @failed
-  end
-
-  def output
-    @output
+    help_txt = super
+    help_txt << "\n\nNote: threshold is limited to an integer only"
   end
 
   protected
+
+  def validate_params(params)
+    super(params)
+    if normalize_threshold(params['threshold']).nil?
+      raise ArgumentError.new("'threshold' param needs to be an integer with or without '%'. E.g: 50% or 50")
+    end
+  end
 
   def normalize_threshold(threshold)
     if threshold.include?("%")

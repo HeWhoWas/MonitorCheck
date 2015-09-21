@@ -1,9 +1,8 @@
 ### This is a base class for all notifications to extend from.
 class BaseNotification
-
-  def initialize
-
-  end
+  attr_accessor :failed
+  attr_accessor :output
+  alias_method :failed?, :failed
 
   #This function should implement the notification itself
   def send(params={}, check)
@@ -11,24 +10,25 @@ class BaseNotification
   end
 
   #Supply a help message for the notification
-  def help()
-    raise NotImplementedError
-  end
-
-  #Should return true if the notification has failed. False otherwise.
-  def failed?
-    raise NotImplementedError
-  end
-
-  #Should return any output produced by the notification
-  def output
-    return ""
+  def help
+    required_params = self.class.class_variable_get('@@required_params')
+    retval = "\n#{self.class.name} requires the following params:"
+    required_params.each do |name, desc|
+      retval << "\n\t#{name}\t=\t#{desc}"
+    end
+    retval
   end
 
   protected
 
-  def validate_params(params={})
-
+  #Validates the required parameters for the check
+  def validate_params(params)
+    required_params = self.class.class_variable_get('@@required_params')
+    required_params.each do |name, desc|
+      if params[name].nil?
+        raise ArgumentError.new("No '#{name}' parameter provided")
+      end
+    end
   end
 
 end
