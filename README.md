@@ -15,6 +15,7 @@ This application was developed and tested against Ruby 2.0.0. It may work on oth
     ./run_check.rb -c <CHECK_NAME> CHECK_PARAM|CHECK_VAL CHECK_PARAM2|CHECK_VAL2
 
 The script can be run as a standalone file from the commandline with stdout:
+
     ./run_check.rb -c CheckDisk 'path|/' 'threshold|90' -v; echo $?
     SUCCESS
     Total MB:       61389           Avail MB:       38014           Usage:  61.92%
@@ -22,12 +23,12 @@ The script can be run as a standalone file from the commandline with stdout:
 
 Or used to send notifications when scheduled with cron:
     
-    ./run_check.rb -c CheckDisk 'path|/' 'threshold|90' -n Email 'to|bettridge.ben@example.com'
+    ./run_check.rb -c CheckDisk 'path|/' 'threshold|90' -n EmailNotification 'to|bettridge.ben@example.com'
     SUCCESS
 
 Alternatively it can notify an HTTP endpoint.
 
-    ./run_check.rb -c HttpCheck 'url|http://www.google.com.au' 'response|302' -n Http 'notify_url|http://www.remoteserver.com/payload.php'
+    ./run_check.rb -c HttpCheck 'url|http://www.google.com.au' 'response|302' -n HttpNotification 'notify_url|http://www.remoteserver.com/payload.php'
     SUCCESS
 
 ### Plugins
