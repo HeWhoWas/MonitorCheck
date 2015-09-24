@@ -31,7 +31,8 @@ where [options] are:
   opt :notification_name, "The name of the notification type you wish to send",
       :type => String
   opt :delimiter, "Delimiter to use when splitting params", :default => '|'
-  opt :verbose, "Use verbose output", :default => false
+  opt :verbose, "Verbose check output", :default => false
+  opt :very_verbose, "Verbose notification output", :default => false
 end
 
 Trollop::die :check_name, "must be a supplied" if (opts[:check_name] == nil)
@@ -82,21 +83,21 @@ check = check_clazz.new()
 begin
   check.execute(check_params)
 rescue ArgumentError => arg_error
-  puts "\nCHECK ERROR: #{arg_error.message}"
+  "CHECK ARGUMENT ERROR: #{arg_error.message}"
   puts check.help
   exit(2)
 end
 
 if check.failed?
   log.error("CHECK FAILED: #{check.output}")
-  puts "FAILED"
+  puts "CHECK FAILED"
   if opts[:verbose]
     puts "#{check.output}"
   end
   exit_code = 1
 else
   log.info("CHECK SUCCEEDED: #{check.class.name} - #{check.output}")
-  puts "SUCCESS"
+  puts "CHECK SUCCEEDED"
   if opts[:verbose]
     puts "#{check.output}"
   end
@@ -107,8 +108,16 @@ if not notif_clazz.nil?
   notif = notif_clazz.new()
   begin
     notif.send(check_params, check)
+    if notif.failed?
+      puts "\nNOTIFICATION FAILED"
+    else
+      puts "\nNOTIFICATION SUCCEEDED"
+    end
+    if opts[:very_verbose]
+      puts notif.output
+    end
   rescue ArgumentError => arg_error
-    puts "\nNOTIFICATION ERROR: #{arg_error.message}"
+    puts "\nNOTIFICATION ARGUMENT ERROR: #{arg_error.message}"
     puts notif.help
   end
 end

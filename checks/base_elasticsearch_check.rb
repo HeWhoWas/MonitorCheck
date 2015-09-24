@@ -1,5 +1,5 @@
 require_relative('base_check')
-class ElasticsearchCheck < BaseCheck
+class BaseElasticsearchCheck < BaseCheck
 
   @@required_params = {'es_url' => 'Elasticsearch URL to connect to',
                       'es_index' => 'Elasticsearch index to use for check'}
