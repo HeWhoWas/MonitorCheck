@@ -13,6 +13,8 @@ class HttpCheck < BaseCheck
     response_time = Benchmark.measure do
       response = client.get(params['url'])
     end
+    @values[:response_code] = response.code.to_i
+    @values[:response_time] = response_time.real
     if response_time.real > ((params['timeout'].to_i * 1.0) / 1000)
       @failed = true
       @output = "Exceeded timeout value of #{params['timeout']} milliseconds. Time taken: #{(response_time.real * 1000).round(2)} milliseconds"

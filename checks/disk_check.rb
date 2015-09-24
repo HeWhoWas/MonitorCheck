@@ -4,6 +4,7 @@ class DiskCheck < BaseCheck
   @@required_params = {"threshold" => "Free space to alert on if value drops BELOW.",
                        "path" => "Directory path to check available space"}
 
+
   def execute(params={})
     validate_params(params)
 
@@ -19,6 +20,9 @@ class DiskCheck < BaseCheck
 
     mb_total = stat.block_size * stat.blocks / 1024 /1024
     mb_available = stat.block_size * stat.blocks_available / 1024 / 1024
+    @values[:mb_avail] = mb_available
+    @values[:mb_total] = mb_total
+    @values[:percent_free] = percentage_free
     @output = "Total MB:\t#{mb_total}\t\tAvail MB:\t#{mb_available}\t\tFree Space:\t#{percentage_free.round(2)}%"
   end
 
